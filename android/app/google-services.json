@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "197954979110",
+    "project_id": "vocabvault2-33446",
+    "storage_bucket": "vocabvault2-33446.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:197954979110:android:3900595fb6cea224616de7",
+        "android_client_info": {
+          "package_name": "com.bintech.vocabvault"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBIlC24rBoXsCT6onxnb-Y-XSGw1MGoyng"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
