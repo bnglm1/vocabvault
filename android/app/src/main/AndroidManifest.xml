@@ -1,7 +1,6 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.bintech.vocabvault">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="vocabvault2"
+        android:label="vocabvault"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <meta-data
@@ -45,5 +44,11 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <!-- URL Launcher izni -->
+        <intent>
+          <action android:name="android.intent.action.SENDTO" />
+          <data android:scheme="mailto" />
+        </intent>
     </queries>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 </manifest>

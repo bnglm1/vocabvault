@@ -153,11 +153,19 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('VocabVault', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.blue.shade700,
+        title: Text(
+          'VocabVault', 
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
+        ),
+        backgroundColor: Colors.grey.shade800, // Mavi -> Koyu Gri
+        elevation: 4,
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: Icon(Icons.logout, color: Colors.white),
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
               Navigator.pushReplacement(
@@ -182,33 +190,130 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Ana Sayfa',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade800, // Beyazdan gri tona değiştirildi
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 10,
+              offset: Offset(0, -2),
+            ),
+          ],
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profil',
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.camera_enhance),
-            label: 'Tara',
+          child: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: Colors.grey.shade800, // Beyazdan gri tona değiştirildi
+            elevation: 0,
+            items: <BottomNavigationBarItem>[
+              BottomNavigationBarItem(
+                icon: Icon(Icons.explore),
+                activeIcon: Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.explore, color: Colors.amber.shade700),
+                ),
+                label: 'Ana Sayfa',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline),
+                activeIcon: Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.person_outline, color: Colors.amber.shade700),
+                ),
+                label: 'Profil',
+              ),
+              BottomNavigationBarItem(
+                icon: Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.amber.shade400, Colors.amber.shade700],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.amber.withOpacity(0.3),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      )
+                    ],
+                  ),
+                  child: Icon(Icons.document_scanner, color: Colors.white, size: 26),
+                ),
+                activeIcon: Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.amber.shade600, Colors.amber.shade900],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.amber.withOpacity(0.5),
+                        blurRadius: 12,
+                        spreadRadius: 3,
+                      )
+                    ],
+                  ),
+                  child: Icon(Icons.document_scanner, color: Colors.white, size: 26),
+                ),
+                label: 'Tara',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.tune),
+                activeIcon: Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.tune, color: Colors.amber.shade700),
+                ),
+                label: 'Ayarlar',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.help_rounded),
+                activeIcon: Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.help_rounded, color: Colors.amber.shade700),
+                ),
+                label: 'Yardım',
+              ),
+            ],
+            currentIndex: _selectedIndex,
+            selectedItemColor: Colors.amber.shade400, // Biraz daha açık amber tonu
+            unselectedItemColor: Colors.grey.shade300, // Açık gri - Koyu arka plan için daha görünür
+            selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            unselectedLabelStyle: TextStyle(fontSize: 11),
+            showUnselectedLabels: true,
+            onTap: _onItemTapped,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Ayarlar',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.help),
-            label: 'Yardım',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blue.shade700,
-        unselectedItemColor: Colors.grey, // Seçili olmayan ikonların rengi
-        onTap: _onItemTapped,
+        ),
       ),
     );
   }
@@ -224,48 +329,82 @@ class HomeContent extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topRight,
           end: Alignment.bottomLeft,
-          colors: [Colors.blue.shade200, Colors.blue.shade50],
+          colors: [Color(0xFFFAF8F0), Colors.grey.shade200], // Mavi tonları -> Sarı-gri tonları
         ),
       ),
       child: Center(
         child: GridView.count(
           crossAxisCount: 2,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          padding: EdgeInsets.all(20),
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          padding: EdgeInsets.all(24),
+          childAspectRatio: 1.0,
           children: <Widget>[
-            _buildCard(context, 'Quiz Başlat', Icons.play_arrow, QuizScreen(wordList: WordList(id: "temp", name: "Word Lists", words: []))),
-            _buildCard(context, 'Kelime Listeleri oluştur', Icons.list, WordListGroupsScreen()),
-            _buildCard(context, 'Kelime Kartları', Icons.card_membership, FlashcardScreen()),
-            _buildCard(context, 'Kelime Eşleştirme', Icons.gamepad, MatchWordScreen()),
-            _buildCard(context, 'Öğren', Icons.school, LearnScreen()), // Yeni ekranı ekleyin
+            _buildFeatureCard(context, 'Quiz Başlat', Icons.play_circle_fill_rounded, 
+                QuizScreen(wordList: WordList(id: "temp", name: "Word Lists", words: []))),
+            _buildFeatureCard(context, 'Kelime Listeleri', Icons.format_list_bulleted_rounded, 
+                WordListGroupsScreen()),
+            _buildFeatureCard(context, 'Kelime Kartları', Icons.style_rounded, 
+                FlashcardScreen()),
+            _buildFeatureCard(context, 'Kelime Eşleştirme', Icons.extension_rounded, 
+                MatchWordScreen()),
+            _buildFeatureCard(context, 'Öğren', Icons.school_rounded, 
+                LearnScreen()),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCard(BuildContext context, String text, IconData icon, Widget destination) {
+  Widget _buildFeatureCard(BuildContext context, String text, IconData icon, Widget destination) {
     return Card(
-      elevation: 5,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => destination),
-          );
-        },
-        child: Center(
+      elevation: 6,
+      shadowColor: Colors.black26,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.white, Colors.yellow.shade50],
+          ),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => destination),
+            );
+          },
+          borderRadius: BorderRadius.circular(20),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Icon(icon, size: 50, color: Colors.blue.shade700),
-              SizedBox(height: 10),
-              Text(
-                text,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.headlineSmall,
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade100,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon, 
+                  size: 48, 
+                  color: Colors.amber.shade700, // Mavi -> Amber
+                ),
+              ),
+              SizedBox(height: 14),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Text(
+                  text,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800, // Mavi -> Koyu Gri
+                  ),
+                ),
               ),
             ],
           ),

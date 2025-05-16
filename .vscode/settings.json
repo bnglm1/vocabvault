@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "D:/Flutter/vocabvault2/linux"
+    "cmake.sourceDirectory": "D:/Flutter/vocabvault2/linux",
+    "java.configuration.updateBuildConfiguration": "automatic"
 }
