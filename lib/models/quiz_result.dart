@@ -8,12 +8,12 @@ class QuizResultScreen extends StatelessWidget {
   final List<bool> answers;
 
   const QuizResultScreen({
-    Key? key,
+    super.key,
     required this.correctAnswers,
     required this.incorrectAnswers,
     required this.words,
     required this.answers,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -231,10 +231,10 @@ class QuizResultScreen extends StatelessWidget {
                             _buildWordItem('İngilizce', words[index].word),
                             SizedBox(height: 8),
                             _buildWordItem('Türkçe', words[index].meaning),
-                            if (words[index].exampleSentence != null && words[index].exampleSentence!.isNotEmpty)
+                            if (words[index].exampleSentence.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.only(top: 8.0),
-                                child: _buildWordItem('Örnek Cümle', words[index].exampleSentence!),
+                                child: _buildWordItem('Örnek Cümle', words[index].exampleSentence),
                               ),
                           ],
                         ),

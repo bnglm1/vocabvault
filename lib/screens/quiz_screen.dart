@@ -238,6 +238,11 @@ class _QuizScreenState extends State<QuizScreen> {
         words = loadedWords;
         isLoading = false;
         _nextQuestion();
+        
+        // Tutorial gösterimi için kullanıcı arayüzü güncellemesi tamamlandıktan sonra çağrı yapılıyor
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showTutorialDialog();
+        });
       });
     } catch (e) {
       setState(() {
@@ -418,7 +423,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   SizedBox(height: 24),
                   
                   // Kapat butonu
-                  Container(
+                  SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
@@ -1060,8 +1065,8 @@ class _QuizScreenState extends State<QuizScreen> {
       // Eğer yeterli benzersiz seçenek yoksa, mevcut seçeneklerle doldur
       while (options.length < 4) {
         String existingOption = options[random.nextInt(options.length)];
-        if (!options.contains(existingOption + "?")) {
-          options.add(existingOption + "?");
+        if (!options.contains("$existingOption?")) {
+          options.add("$existingOption?");
         }
       }
     }

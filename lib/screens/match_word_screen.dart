@@ -571,7 +571,7 @@ class _MatchWordScreenState extends State<MatchWordScreen> {
           ),
           actions: [
             // Sadece 'Tamam' butonu ekleyelim
-            Container(
+            SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
