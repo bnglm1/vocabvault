@@ -426,23 +426,42 @@ class _WordListGroupsScreenState extends State<WordListGroupsScreen> {
     
     return showDialog<String>(
       context: context,
+      barrierDismissible: true,
       builder: (BuildContext context) {
         return Dialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
           elevation: 5,
-          child: Padding(
+          backgroundColor: Colors.white,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Colors.white, Colors.amber.shade50],
+              ),
+            ),
             padding: const EdgeInsets.all(20.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Başlık ikonu
+                // Başlık ikonu - gölge ve kenar çizgisi ile iyileştirildi
                 Container(
                   padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.amber.shade50,
                     shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.amber.shade200.withOpacity(0.5),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
+                    border: Border.all(color: Colors.amber.shade200, width: 1.5),
                   ),
                   child: Icon(
                     Icons.playlist_add,
@@ -452,23 +471,24 @@ class _WordListGroupsScreenState extends State<WordListGroupsScreen> {
                 ),
                 SizedBox(height: 16),
                 
-                // Başlık
+                // Başlık - renk amber olarak değiştirildi
                 Text(
                   'Yeni Liste Ekle',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade800,
+                    color: Colors.amber.shade800,
                   ),
                 ),
                 SizedBox(height: 20),
                 
-                // Liste ismi giriş alanı
+                // Liste ismi giriş alanı - iyileştirildi
                 TextField(
                   controller: controller,
                   autofocus: true,
                   decoration: InputDecoration(
                     labelText: 'Liste İsmi',
+                    labelStyle: TextStyle(color: Colors.amber.shade700),
                     hintText: 'Örn: İngilizce Fiiller',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -477,38 +497,88 @@ class _WordListGroupsScreenState extends State<WordListGroupsScreen> {
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(color: Colors.amber.shade700, width: 2),
                     ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.amber.shade200),
+                    ),
+                    prefixIcon: Icon(Icons.folder_outlined, color: Colors.amber.shade600),
+                    fillColor: Colors.white,
+                    filled: true,
+                  ),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey.shade800,
                   ),
                 ),
                 SizedBox(height: 24),
                 
-                // Butonlar
+                // Butonlar - geliştirilmiş stiller
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
+                    // İptal butonu - daha belirgin
                     TextButton(
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
                       child: Text(
                         'İptal',
                         style: TextStyle(
-                          color: Colors.grey.shade700,
+                          color: Colors.grey.shade600,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
-                    SizedBox(width: 8),
+                    SizedBox(width: 12),
+                    
+                    // Ekle butonu - daha dikkat çekici
                     ElevatedButton(
                       onPressed: () {
+                        if (controller.text.trim().isEmpty) {
+                          // Boş liste adı kontrolü
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Lütfen liste için bir isim girin'),
+                              backgroundColor: Colors.red.shade400,
+                              behavior: SnackBarBehavior.floating,
+                              margin: EdgeInsets.all(10),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          );
+                          return;
+                        }
                         Navigator.of(context).pop(controller.text.trim());
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.amber.shade700,
                         foregroundColor: Colors.white,
+                        elevation: 2,
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      child: Text('Ekle'),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.add, size: 18),
+                          SizedBox(width: 6),
+                          Text(
+                            'Ekle',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -603,7 +673,7 @@ class _WordListGroupsScreenState extends State<WordListGroupsScreen> {
                   SizedBox(height: 24),
                   
                   // Kapat butonu
-                  Container(
+                  SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () => Navigator.of(context).pop(),

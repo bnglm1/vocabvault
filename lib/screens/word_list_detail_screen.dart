@@ -41,10 +41,9 @@ class _WordListDetailScreenState extends State<WordListDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.wordList.name, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.grey.shade800, // Renk amber olarak değiştirildi
+        backgroundColor: Colors.grey.shade800, // Gri yerine amber tonu
         elevation: 2,
         actions: [
-          // Bilgilendirme butonu eklendi
           IconButton(
             icon: Icon(Icons.info_outline, color: Colors.white),
             onPressed: _showInfoCard,
@@ -375,7 +374,7 @@ class _WordListDetailScreenState extends State<WordListDetailScreen> {
                   SizedBox(height: 24),
                   
                   // Kapat butonu
-                  Container(
+                  SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () => Navigator.of(context).pop(),
@@ -459,23 +458,42 @@ class _WordListDetailScreenState extends State<WordListDetailScreen> {
     _exampleSentenceController.clear();
     return showDialog<void>(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return Dialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
           elevation: 5,
-          child: Padding(
+          backgroundColor: Colors.white,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Colors.white, Colors.amber.shade50],
+              ),
+            ),
             padding: const EdgeInsets.all(20.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Başlık ikonu
+                // Başlık ikonu - daha detaylı
                 Container(
                   padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.amber.shade50,
                     shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.amber.shade100.withOpacity(0.5),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
+                    border: Border.all(color: Colors.amber.shade200, width: 1.5),
                   ),
                   child: Icon(
                     Icons.add_circle_outline,
@@ -485,21 +503,23 @@ class _WordListDetailScreenState extends State<WordListDetailScreen> {
                 ),
                 SizedBox(height: 16),
                 
-                // Başlık
+                // Başlık - Amber renginde
                 Text(
                   'Kelime Ekle',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade800,
+                    color: Colors.amber.shade800,
                   ),
                 ),
                 SizedBox(height: 20),
                 
+                // Input alanları - aynı kalıyor
                 TextField(
                   controller: _wordController,
                   decoration: InputDecoration(
                     labelText: 'Kelime (İngilizce)',
+                    labelStyle: TextStyle(color: Colors.amber.shade700),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -507,6 +527,11 @@ class _WordListDetailScreenState extends State<WordListDetailScreen> {
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(color: Colors.amber.shade700, width: 2),
                     ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.amber.shade200),
+                    ),
+                    prefixIcon: Icon(Icons.text_fields, color: Colors.amber.shade600),
                   ),
                   onChanged: (value) {
                     _fetchTranslation(value);
@@ -517,6 +542,7 @@ class _WordListDetailScreenState extends State<WordListDetailScreen> {
                   controller: _meaningController,
                   decoration: InputDecoration(
                     labelText: 'Anlamı (Türkçe)',
+                    labelStyle: TextStyle(color: Colors.amber.shade700),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -524,6 +550,11 @@ class _WordListDetailScreenState extends State<WordListDetailScreen> {
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(color: Colors.amber.shade700, width: 2),
                     ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.amber.shade200),
+                    ),
+                    prefixIcon: Icon(Icons.translate, color: Colors.amber.shade600),
                   ),
                 ),
                 SizedBox(height: 12),
@@ -531,6 +562,7 @@ class _WordListDetailScreenState extends State<WordListDetailScreen> {
                   controller: _exampleSentenceController,
                   decoration: InputDecoration(
                     labelText: 'Örnek Cümle',
+                    labelStyle: TextStyle(color: Colors.amber.shade700),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -538,45 +570,84 @@ class _WordListDetailScreenState extends State<WordListDetailScreen> {
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(color: Colors.amber.shade700, width: 2),
                     ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.amber.shade200),
+                    ),
+                    prefixIcon: Icon(Icons.format_quote, color: Colors.amber.shade600),
                   ),
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: 24),
                 
-                // Butonlar
+                // Butonlar - daha şık tasarım
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      child: Text(
-                        'İptal',
-                        style: TextStyle(color: Colors.grey.shade600),
-                      ),
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      ),
+                      child: Text(
+                        'İptal',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
+                        ),
+                      ),
                     ),
-                    SizedBox(width: 8),
+                    SizedBox(width: 12),
                     ElevatedButton(
-                      child: Text('Ekle'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.amber.shade700,
                         foregroundColor: Colors.white,
+                        elevation: 2,
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                       onPressed: () {
+                        if (_wordController.text.trim().isEmpty || 
+                            _meaningController.text.trim().isEmpty) {
+                          // Boş alan kontrolü
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Lütfen kelime ve anlamını girin'),
+                              backgroundColor: Colors.red.shade400,
+                            ),
+                          );
+                          return;
+                        }
+                        
                         setState(() {
                           widget.wordList.words.add(Word(
                             id: UniqueKey().toString(),
-                            word: _wordController.text,
-                            meaning: _meaningController.text,
-                            exampleSentence: _exampleSentenceController.text,
+                            word: _wordController.text.trim(),
+                            meaning: _meaningController.text.trim(),
+                            exampleSentence: _exampleSentenceController.text.trim(),
                           ));
                         });
                         _saveWordList();
                         Navigator.of(context).pop();
                       },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.add, size: 18),
+                          SizedBox(width: 6),
+                          Text(
+                            'Ekle',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -694,7 +765,6 @@ class _WordListDetailScreenState extends State<WordListDetailScreen> {
                     ),
                     SizedBox(width: 8),
                     ElevatedButton(
-                      child: Text('Kaydet'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.amber.shade700,
                         foregroundColor: Colors.white,
@@ -714,6 +784,7 @@ class _WordListDetailScreenState extends State<WordListDetailScreen> {
                         _saveWordList();
                         Navigator.of(context).pop();
                       },
+                      child: Text('Kaydet'),
                     ),
                   ],
                 ),

@@ -75,13 +75,16 @@ class _QuizScreenState extends State<QuizScreen> {
           .collection('wordLists')
           .get();
 
-      List<WordList> wordLists = querySnapshot.docs
+      List<WordList> allWordLists = querySnapshot.docs
           .map((doc) => WordList.fromMap(doc.data() as Map<String, dynamic>, doc.id))
           .toList();
+          
+      // Sadece en az 4 kelime içeren listeleri filtrele
+      List<WordList> eligibleWordLists = allWordLists.where((list) => list.words.length >= 4).toList();
 
       showDialog(
         context: context,
-        barrierDismissible: false, // Dışarı tıklandığında kapanmasını engeller
+        barrierDismissible: false,
         builder: (context) {
           return AlertDialog(
             title: Text(
@@ -98,7 +101,7 @@ class _QuizScreenState extends State<QuizScreen> {
             content: Container(
               width: double.maxFinite,
               constraints: BoxConstraints(maxHeight: 300),
-              child: wordLists.isEmpty
+              child: eligibleWordLists.isEmpty
                   ? Center(
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
@@ -109,7 +112,9 @@ class _QuizScreenState extends State<QuizScreen> {
                                size: 48, color: Colors.amber.shade300),
                             SizedBox(height: 16),
                             Text(
-                              'Henüz kelime listeniz bulunmuyor.',
+                              allWordLists.isEmpty
+                                  ? 'Henüz kelime listeniz bulunmuyor.'
+                                  : 'Quiz için uygun liste bulunamadı.\nListelerinizde en az 4 kelime olmalıdır.',
                               textAlign: TextAlign.center,
                               style: TextStyle(color: Colors.grey.shade700),
                             ),
@@ -119,7 +124,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     )
                   : ListView.builder(
                       shrinkWrap: true,
-                      itemCount: wordLists.length,
+                      itemCount: eligibleWordLists.length,
                       itemBuilder: (context, index) {
                         return Card(
                           elevation: 0,
@@ -145,14 +150,14 @@ class _QuizScreenState extends State<QuizScreen> {
                               ),
                             ),
                             title: Text(
-                              wordLists[index].name,
+                              eligibleWordLists[index].name,
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 color: Colors.grey.shade800,
                               ),
                             ),
                             subtitle: Text(
-                              '${wordLists[index].words.length} kelime',
+                              '${eligibleWordLists[index].words.length} kelime',
                               style: TextStyle(
                                 color: Colors.grey.shade600,
                                 fontSize: 12,
@@ -165,7 +170,7 @@ class _QuizScreenState extends State<QuizScreen> {
                             ),
                             onTap: () {
                               Navigator.of(context).pop();
-                              _loadWords(wordLists[index].id);
+                              _loadWords(eligibleWordLists[index].id);
                             },
                           ),
                         );
@@ -173,28 +178,16 @@ class _QuizScreenState extends State<QuizScreen> {
                     ),
             ),
             actions: [
-              if (wordLists.isNotEmpty)
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Dialog'u kapat
-                    Navigator.of(context).pop(); // Quiz ekranını kapat
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.grey.shade700,
-                  ),
-                  child: Text('İptal'),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Dialog'u kapat
+                  Navigator.of(context).pop(); // Quiz ekranını kapat
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.grey.shade700,
                 ),
-              if (wordLists.isEmpty)
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Dialog'u kapat
-                    Navigator.of(context).pop(); // Quiz ekranını kapat
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.amber.shade700,
-                  ),
-                  child: Text('Ana Sayfaya Dön'),
-                ),
+                child: Text('İptal'),
+              ),
             ],
           );
         },

@@ -66,7 +66,7 @@ class _ScannedWordsScreenState extends State<ScannedWordsScreen> {
         String existingWord = uniqueWordsMap[lowerCaseWord]!;
         
         // İlk harf büyükse ve diğeri tamamen büyük değilse, ilk harfi büyük olanı seç
-        if (trimmedWord.length > 0 && 
+        if (trimmedWord.isNotEmpty && 
             trimmedWord[0].toUpperCase() == trimmedWord[0] && 
             existingWord.toUpperCase() == existingWord) {
           uniqueWordsMap[lowerCaseWord] = trimmedWord;
@@ -397,7 +397,7 @@ class _ScannedWordsScreenState extends State<ScannedWordsScreen> {
                 SizedBox(height: 24),
                 
                 // Kapat butonu - daha belirgin hale getirildi
-                Container(
+                SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
