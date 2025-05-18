@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:vocabvault2/screens/dictionary_screen.dart';
 import 'dart:io';
 import 'quiz_screen.dart';
 import 'profile_screen.dart';
@@ -350,6 +351,7 @@ class HomeContent extends StatelessWidget {
                 MatchWordScreen()),
             _buildFeatureCard(context, 'Öğren', Icons.school_rounded, 
                 LearnScreen()),
+            _buildDictionaryButton(context), // Sözlük butonu eklendi
           ],
         ),
       ),
@@ -403,6 +405,63 @@ class HomeContent extends StatelessWidget {
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.grey.shade800, // Mavi -> Koyu Gri
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDictionaryButton(BuildContext context) {
+    return Card(
+      elevation: 6,
+      shadowColor: Colors.black26,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.white, Colors.yellow.shade50],
+          ),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => DictionaryScreen()),
+            );
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade100,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.menu_book, 
+                  size: 48, 
+                  color: Colors.amber.shade700,
+                ),
+              ),
+              SizedBox(height: 14),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Text(
+                  'Sözlük',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800,
                   ),
                 ),
               ),

@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:translator/translator.dart';
 import '../models/word_list.dart';
 import '../models/word.dart';
+import '../services/example_sentence_service.dart'; // İmport ekleyin
 
 class WordListDetailScreen extends StatefulWidget {
   final WordList wordList;
@@ -22,6 +23,7 @@ class _WordListDetailScreenState extends State<WordListDetailScreen> {
   
   // Bilgilendirme kartının gösterilip gösterilmediğini takip eden değişken
   bool _hasShownInfoCard = false;
+  bool _isLoading = false; // Yükleniyor durumu için yeni değişken
 
   @override
   void initState() {
@@ -84,6 +86,7 @@ class _WordListDetailScreenState extends State<WordListDetailScreen> {
                           widget.wordList.words[index].meaning,
                           style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
                         ),
+                        // Sadece örnek cümle varsa göster
                         if (widget.wordList.words[index].exampleSentence.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 4.0),
@@ -370,10 +373,17 @@ class _WordListDetailScreenState extends State<WordListDetailScreen> {
                     title: 'Otomatik Çeviri',
                     description: 'Kelime eklerken veya düzenlerken, İngilizce kelimeyi yazdığınızda Türkçe anlamı otomatik olarak doldurulur.',
                   ),
+                  SizedBox(height: 16),
+                  
+                  _buildInfoItem(
+                    icon: Icons.format_quote,
+                    title: 'Otomatik Örnek Cümle',
+                    description: 'Kelime eklerken veya düzenlerken, İngilizce kelimeyi yazdığınızda örnek cümle otomatik olarak getirilir.',
+                  ),
                   
                   SizedBox(height: 24),
                   
-                  // Kapat butonu
+                  // Kapat butonub 
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -536,6 +546,10 @@ class _WordListDetailScreenState extends State<WordListDetailScreen> {
                   onChanged: (value) {
                     _fetchTranslation(value);
                   },
+                  onEditingComplete: () {
+                    // Kullanıcı yazma işlemini tamamladığında çalışır
+                    _formatWordField();
+                  },
                 ),
                 SizedBox(height: 12),
                 TextField(
@@ -555,6 +569,16 @@ class _WordListDetailScreenState extends State<WordListDetailScreen> {
                       borderSide: BorderSide(color: Colors.amber.shade200),
                     ),
                     prefixIcon: Icon(Icons.translate, color: Colors.amber.shade600),
+                    suffixIcon: _isLoading 
+                      ? SizedBox(
+                          height: 16, 
+                          width: 16, 
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.amber.shade700),
+                          )
+                        )
+                      : null,
                   ),
                 ),
                 SizedBox(height: 12),
@@ -575,6 +599,16 @@ class _WordListDetailScreenState extends State<WordListDetailScreen> {
                       borderSide: BorderSide(color: Colors.amber.shade200),
                     ),
                     prefixIcon: Icon(Icons.format_quote, color: Colors.amber.shade600),
+                    suffixIcon: _isLoading 
+                      ? SizedBox(
+                          height: 16, 
+                          width: 16, 
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.amber.shade700),
+                          )
+                        )
+                      : null,
                   ),
                 ),
                 SizedBox(height: 24),
@@ -628,6 +662,7 @@ class _WordListDetailScreenState extends State<WordListDetailScreen> {
                             id: UniqueKey().toString(),
                             word: _wordController.text.trim(),
                             meaning: _meaningController.text.trim(),
+                            // Örnek cümle boşsa boş string olarak ekle
                             exampleSentence: _exampleSentenceController.text.trim(),
                           ));
                         });
@@ -718,6 +753,10 @@ class _WordListDetailScreenState extends State<WordListDetailScreen> {
                   ),
                   onChanged: (value) {
                     _fetchTranslation(value);
+                  },
+                  onEditingComplete: () {
+                    // Kullanıcı yazma işlemini tamamladığında çalışır
+                    _formatWordField();
                   },
                 ),
                 SizedBox(height: 12),
@@ -816,10 +855,82 @@ class _WordListDetailScreenState extends State<WordListDetailScreen> {
     }
   }
 
+  // _fetchTranslation metodunu güncelle
   Future<void> _fetchTranslation(String word) async {
-    final translation = await translator.translate(word, from: 'en', to: 'tr');
+    // Çeviri için kelimeyi temizle ama TextController'ın değerini değiştirme
+    String cleanedWord = word.trim();
+    
+    // Eğer birden fazla kelime varsa, ilk kelimeyi al
+    if (cleanedWord.contains(' ')) {
+      cleanedWord = cleanedWord.split(' ')[0];
+    }
+    
+    if (cleanedWord.isEmpty) return;
+    
+    // UI'de yükleniyor göstergesi
     setState(() {
-      _meaningController.text = translation.text;
+      _isLoading = true;
     });
+    
+    try {
+      // Çeviri ve örnek cümleyi paralel olarak getir
+      final translationFuture = translator.translate(cleanedWord, from: 'en', to: 'tr');
+      final exampleFuture = ExampleSentenceService.getExampleSentence(cleanedWord);
+      
+      // İki API çağrısını da bekle
+      final results = await Future.wait([
+        translationFuture,
+        exampleFuture,
+      ]);
+      
+      // Sonuçları ayır
+      final translation = results[0] as Translation;
+      final exampleSentence = results[1] as String;
+      
+      if (mounted) {
+        setState(() {
+          _meaningController.text = translation.text;
+          
+          // Örnek cümle boşsa TextField'ı temizle, doluysa göster
+          if (exampleSentence.isEmpty) {
+            _exampleSentenceController.clear();
+          } else {
+            _exampleSentenceController.text = exampleSentence;
+          }
+          
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+      print('Çeviri veya örnek cümle getirilirken hata: $e');
+    }
+  }
+
+  // Yeni metod: Kelime alanını düzenleme
+  void _formatWordField() {
+    String word = _wordController.text.trim();
+    
+    if (word.isEmpty) return;
+    
+    // İlk kelimeyi al
+    if (word.contains(' ')) {
+      word = word.split(' ')[0];
+    }
+    
+    // İlk harfi büyük yap
+    if (word.length > 1) {
+      word = word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }
+    
+    // Controller'ı güncelle
+    _wordController.text = word;
+    _wordController.selection = TextSelection.fromPosition(
+      TextPosition(offset: word.length),
+    );
   }
 }

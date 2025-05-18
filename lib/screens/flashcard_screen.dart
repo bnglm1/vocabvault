@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:audioplayers/audioplayers.dart'; // Bu satırı ekleyin
 import '../models/word_list.dart' as word_list_model;
 import '../models/word.dart' as word_model;
 
@@ -57,7 +58,7 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
 
     showDialog(
       context: context,
-      barrierDismissible: false, // Dışarı tıklayarak kapatmayı engelle
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return Dialog(
           shape: RoundedRectangleBorder(
@@ -65,156 +66,169 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
           ),
           elevation: 10,
           backgroundColor: Colors.white,
-          child: Container(
-            padding: EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Colors.white, Colors.yellow.shade50],
+          child: SingleChildScrollView( // Dialog içeriğini kaydırılabilir yapalım
+            child: Container(
+              padding: EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Colors.white, Colors.yellow.shade50],
+                ),
               ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Başlık - Row yerine Column kullandım taşmayı önlemek için
-                Column(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.shade100,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(Icons.help_outline, color: Colors.amber.shade700, size: 24),
-                    ),
-                    SizedBox(height: 12),
-                    Text(
-                      'Kelime Kartları Nasıl Kullanılır?',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade800,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20),
-                
-                // Adım 1
-                _buildTutorialStep(
-                  icon: Icons.expand_more,
-                  title: 'Kelime Listesini Açın',
-                  description: 'İstediğiniz kelime listesinin başlığına tıklayarak listede bulunan kelimeleri görebilirsiniz.',
-                ),
-                SizedBox(height: 16),
-                
-                // Adım 2
-                _buildTutorialStep(
-                  icon: Icons.touch_app,
-                  title: 'Karta Dokunun',
-                  description: 'Kelime kartının ön yüzünde kelime, arka yüzünde anlamı gösterilir. Kartı çevirmek için üzerine dokunun.',
-                ),
-                SizedBox(height: 16),
-                
-                // Adım 3
-                _buildTutorialStep(
-                  icon: Icons.autorenew,
-                  title: 'Tekrar Çevirin',
-                  description: 'Kartı tekrar çevirmek için arka yüze dokunun. İstediğiniz kadar çevirebilirsiniz.',
-                ),
-                SizedBox(height: 20),
-                
-                // Animasyonlu kart örneği
-                Container(
-                  width: 250,
-                  height: 130,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Colors.white, Colors.amber.shade50],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.amber.shade200.withOpacity(0.3),
-                        spreadRadius: 1,
-                        blurRadius: 5,
-                      ),
-                    ],
-                  ),
-                  child: Stack(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Başlık - Row yerine Column kullandım taşmayı önlemek için
+                  Column(
                     children: [
-                      Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Book',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey.shade800,
-                              ),
-                            ),
-                            SizedBox(height: 5),
-                            Icon(
-                              Icons.touch_app_rounded, 
-                              color: Colors.amber.shade700,
-                              size: 30,
-                            ),
-                            SizedBox(height: 5),
-                            Text(
-                              'Dokunarak çevirin',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ],
+                      Container(
+                        padding: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.shade100,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.help_outline, color: Colors.amber.shade700, size: 24),
+                      ),
+                      SizedBox(height: 12),
+                      Text(
+                        'Kelime Kartları Nasıl Kullanılır?',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade800,
                         ),
                       ),
-                      Positioned(
-                        top: 10,
-                        left: 10,
-                        child: Icon(Icons.menu_book, color: Colors.amber.shade200, size: 16),
-                      ),
                     ],
                   ),
-                ),
-                
-                SizedBox(height: 24),
-                
-                // Kapat butonu
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amber.shade700,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  SizedBox(height: 20),
+                  
+                  // Adımlar burada...
+                  _buildTutorialStep(
+                    icon: Icons.expand_more,
+                    title: 'Kelime Listesini Açın',
+                    description: 'İstediğiniz kelime listesinin başlığına tıklayarak listede bulunan kelimeleri görebilirsiniz.',
+                  ),
+                  SizedBox(height: 16),
+                  
+                  _buildTutorialStep(
+                    icon: Icons.touch_app,
+                    title: 'Karta Dokunun',
+                    description: 'Kelime kartının ön yüzünde kelime, arka yüzünde anlamı gösterilir. Kartı çevirmek için üzerine dokunun.',
+                  ),
+                  SizedBox(height: 16),
+                  
+                  _buildTutorialStep(
+                    icon: Icons.autorenew,
+                    title: 'Tekrar Çevirin',
+                    description: 'Kartı tekrar çevirmek için arka yüze dokunun. İstediğiniz kadar çevirebilirsiniz.',
+                  ),
+                  SizedBox(height: 16),
+                  
+                  _buildTutorialStep(
+                    icon: Icons.volume_up,
+                    title: 'Sesli Telaffuz',
+                    description: 'Kelimenin telaffuzunu duymak için kelime kartının sağ üst köşesindeki ses simgesine dokunun.',
+                  ),
+                  SizedBox(height: 20),
+                  
+                  // Animasyonlu kart örneği - Ekrana sığacak şekilde dinamik genişlik kullanıyoruz
+                  Container(
+                    width: MediaQuery.of(context).size.width > 350 ? 230 : MediaQuery.of(context).size.width * 0.6,
+                    height: 120, // Biraz daha küçülttük
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Colors.white, Colors.amber.shade50],
                       ),
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                      elevation: 2,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.amber.shade200.withOpacity(0.3),
+                          spreadRadius: 1,
+                          blurRadius: 5,
+                        ),
+                      ],
                     ),
-                    child: Text(
-                      'Anladım',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                    child: Stack(
+                      children: [
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Book',
+                                style: TextStyle(
+                                  fontSize: 20, // Yazı boyutunu küçülttük
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey.shade800,
+                                ),
+                              ),
+                              SizedBox(height: 5),
+                              Icon(
+                                Icons.touch_app_rounded, 
+                                color: Colors.amber.shade700,
+                                size: 24, // İkon boyutunu küçülttük
+                              ),
+                              SizedBox(height: 5),
+                              Text(
+                                'Dokunarak çevirin',
+                                style: TextStyle(
+                                  fontSize: 10, // Yazı boyutunu küçülttük
+                                  color: Colors.grey.shade600,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          left: 8,
+                          child: Icon(Icons.menu_book, color: Colors.amber.shade200, size: 14),
+                        ),
+                        // Burada ses ikonunu da ekleyelim
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Icon(Icons.volume_up, color: Colors.amber.shade700, size: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  SizedBox(height: 24),
+                  
+                  // Kapat butonu
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.amber.shade700,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        elevation: 2,
+                      ),
+                      child: Text(
+                        'Anladım',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -347,6 +361,9 @@ class _FlashcardState extends State<Flashcard> with SingleTickerProviderStateMix
   bool _isFlipped = false;
   late AnimationController _controller;
   late Animation<double> _animation;
+  final AudioPlayer _audioPlayer = AudioPlayer(); // Bu satırı ekleyin
+  bool _isLoadingAudio = false; // Bu satırı ekleyin
+  bool _audioError = false; // Bu satırı ekleyin
 
   @override
   void initState() {
@@ -372,9 +389,56 @@ class _FlashcardState extends State<Flashcard> with SingleTickerProviderStateMix
     });
   }
 
+  // Kelime telaffuzunu çalma fonksiyonu
+  Future<void> _playPronunciation() async {
+    // Ses çalarken kartın çevrilmesini engelleyelim
+    if (_isLoadingAudio) return;
+    
+    setState(() {
+      _isLoadingAudio = true;
+      _audioError = false;
+    });
+    
+    try {
+      // Text-to-Speech API üzerinden kelimeyi alalım
+      String word = widget.word.word.trim().toLowerCase();
+      String audioUrl = "https://ssl.gstatic.com/dictionary/static/sounds/oxford/${word}--_us_1.mp3";
+      
+      await _audioPlayer.play(UrlSource(audioUrl));
+      
+      // Ses çalma tamamlandığında loading durumunu kapatalım
+      _audioPlayer.onPlayerComplete.listen((event) {
+        if (mounted) {
+          setState(() {
+            _isLoadingAudio = false;
+          });
+        }
+      });
+      
+    } catch (e) {
+      print("Ses oynatma hatası: $e");
+      
+      if (mounted) {
+        setState(() {
+          _isLoadingAudio = false;
+          _audioError = true;
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Telaffuz bulunamadı'),
+            backgroundColor: Colors.red.shade400,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   void dispose() {
     _controller.dispose();
+    _audioPlayer.dispose(); // Bu satırı ekleyin
     super.dispose();
   }
 
@@ -382,6 +446,7 @@ class _FlashcardState extends State<Flashcard> with SingleTickerProviderStateMix
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: _flipCard,
+      behavior: HitTestBehavior.deferToChild, // Bu satırı ekleyin
       child: AnimatedBuilder(
         animation: _animation,
         builder: (context, child) {
@@ -440,18 +505,49 @@ class _FlashcardState extends State<Flashcard> with SingleTickerProviderStateMix
                 size: 18, // Daha küçük ikon
               ),
             ),
+            
+            // Telaffuz butonu ekle
+            Positioned(
+              top: 10,
+              right: 10,
+              child: InkWell(
+                onTap: _playPronunciation, // Ses çalma metodunu çağır
+                child: Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade100,
+                    shape: BoxShape.circle,
+                  ),
+                  child: _isLoadingAudio
+                    ? SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.amber.shade700),
+                        ),
+                      )
+                    : Icon(
+                        _audioError ? Icons.volume_off : Icons.volume_up,
+                        color: Colors.amber.shade700,
+                        size: 18,
+                      ),
+                ),
+              ),
+            ),
+            
+            // Ortadaki kelime ve alt kısımdaki metin aynı kalacak
             Center(
               child: Text(
                 widget.word.word,
                 style: TextStyle(
-                  fontSize: 26, // Biraz daha küçük font boyutu
+                  fontSize: 26,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey.shade800,
                 ),
                 textAlign: TextAlign.center,
-                // Metni kırpıp sonuna üç nokta ekler
                 overflow: TextOverflow.ellipsis,
-                maxLines: 3, // Uzun kelimeleri çok satırda göster
+                maxLines: 3,
               ),
             ),
             Positioned(
