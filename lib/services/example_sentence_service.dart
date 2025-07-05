@@ -87,13 +87,9 @@ class ExampleSentenceService {
     // API'ler sırayla denenir
     String? example = await getExampleFromDictApi(word);
     
-    if (example == null) {
-      example = await getExampleFromDataMuse(word);
-    }
+    example ??= await getExampleFromDataMuse(word);
     
-    if (example == null) {
-      example = await getExampleFromWordnik(word);
-    }
+    example ??= await getExampleFromWordnik(word);
     
     // Hiçbir API sonuç vermezse, boş string döndür
     return example ?? '';

@@ -32,6 +32,7 @@ class _QuizScreenState extends State<QuizScreen> {
   String currentFeedback = '';
   bool showFeedback = false;
   String _selectedAnswer = ""; // Sınıf değişkenleri arasına ekleyin
+  List<String> _currentOptions = []; // Seçenekleri saklamak için yeni değişken ekleyin
 
   @override
   void initState() {
@@ -253,9 +254,16 @@ class _QuizScreenState extends State<QuizScreen> {
 
   void _nextQuestion() {
     setState(() {
-      questionType = random.nextInt(3); // 0: Türkçe -> İngilizce, 1: İngilizce -> Türkçe, 2: Yazma Görevi
+      questionType = random.nextInt(3);
       _textEditingController.clear();
       showFeedback = false;
+      
+      // Seçenekleri sadece soru değiştiğinde oluştur ve sakla
+      if (questionType != 2) { // Yazma görevi değilse
+        _currentOptions = _generateOptions();
+      } else {
+        _currentOptions = [];
+      }
     });
   }
 
@@ -939,22 +947,19 @@ class _QuizScreenState extends State<QuizScreen> {
       return Container(); // Yazma görevi için seçenekler yok
     }
 
-    List<String> options = _generateOptions();
-    String correctAnswer = "";
-    
-    if (questionType == 0) {
-      correctAnswer = words[currentIndex].word;
-    } else {
-      correctAnswer = words[currentIndex].meaning;
-    }
+    // Önceden oluşturulan seçenekleri kullan, yeniden oluşturma
+    String correctAnswer = questionType == 0 
+      ? words[currentIndex].word 
+      : words[currentIndex].meaning;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Column(
-        children: options.map((option) {
+        children: _currentOptions.map((option) {
           bool isCorrectOption = option.toLowerCase().trim() == correctAnswer.toLowerCase().trim();
-          bool isSelectedWrongOption = showFeedback && !isCorrectOption && 
-                                   option == _textEditingController.text; // Seçilen yanlış cevap
+          bool isSelectedWrongOption = showFeedback && 
+              option == _selectedAnswer && // _selectedAnswer kullanılıyor, _textEditingController.text değil
+              !isCorrectOption;
         
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 6.0),

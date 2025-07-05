@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:audioplayers/audioplayers.dart'; // Bu satırı ekleyin
+import 'package:audioplayers/audioplayers.dart';
 import '../models/word_list.dart' as word_list_model;
 import '../models/word.dart' as word_model;
+import '../services/pronunciation_service.dart';
+import '../services/translation_service.dart';
 
 class FlashcardScreen extends StatefulWidget {
   const FlashcardScreen({super.key});
@@ -92,14 +95,19 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                         child: Icon(Icons.help_outline, color: Colors.amber.shade700, size: 24),
                       ),
                       SizedBox(height: 12),
-                      Text(
-                        'Kelime Kartları Nasıl Kullanılır?',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey.shade800,
-                        ),
+                      FutureBuilder<String>(
+                        future: TranslationService.translate('how_to_use_flashcards'),
+                        builder: (context, snapshot) {
+                          return Text(
+                            snapshot.data ?? 'Kelime Kartları Nasıl Kullanılır?',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade800,
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -218,12 +226,17 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                         padding: EdgeInsets.symmetric(vertical: 12),
                         elevation: 2,
                       ),
-                      child: Text(
-                        'Anladım',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      child: FutureBuilder<String>(
+                        future: TranslationService.translate('understand'),
+                        builder: (context, snapshot) {
+                          return Text(
+                            snapshot.data ?? 'Anladım',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -286,12 +299,17 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Kelime Kartları',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+        title: FutureBuilder<String>(
+          future: TranslationService.translate('flashcards'),
+          builder: (context, snapshot) {
+            return Text(
+              snapshot.data ?? 'Kelime Kartları',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            );
+          },
         ),
         backgroundColor: Colors.grey.shade800,
         elevation: 4,
@@ -361,9 +379,10 @@ class _FlashcardState extends State<Flashcard> with SingleTickerProviderStateMix
   bool _isFlipped = false;
   late AnimationController _controller;
   late Animation<double> _animation;
-  final AudioPlayer _audioPlayer = AudioPlayer(); // Bu satırı ekleyin
-  bool _isLoadingAudio = false; // Bu satırı ekleyin
-  bool _audioError = false; // Bu satırı ekleyin
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  bool _isLoadingAudio = false;
+  bool _audioError = false;
+  StreamSubscription? _audioPlayerSubscription;
 
   @override
   void initState() {
@@ -391,7 +410,6 @@ class _FlashcardState extends State<Flashcard> with SingleTickerProviderStateMix
 
   // Kelime telaffuzunu çalma fonksiyonu
   Future<void> _playPronunciation() async {
-    // Ses çalarken kartın çevrilmesini engelleyelim
     if (_isLoadingAudio) return;
     
     setState(() {
@@ -400,37 +418,38 @@ class _FlashcardState extends State<Flashcard> with SingleTickerProviderStateMix
     });
     
     try {
-      // Text-to-Speech API üzerinden kelimeyi alalım
-      String word = widget.word.word.trim().toLowerCase();
-      String audioUrl = "https://ssl.gstatic.com/dictionary/static/sounds/oxford/${word}--_us_1.mp3";
+      String? audioUrl = await PronunciationService.getPronunciationUrl(widget.word.word);
       
-      await _audioPlayer.play(UrlSource(audioUrl));
-      
-      // Ses çalma tamamlandığında loading durumunu kapatalım
-      _audioPlayer.onPlayerComplete.listen((event) {
-        if (mounted) {
-          setState(() {
-            _isLoadingAudio = false;
-          });
-        }
-      });
-      
+      if (audioUrl != null) {
+        _audioPlayerSubscription?.cancel();
+        await _audioPlayer.play(UrlSource(audioUrl));
+        
+        _audioPlayerSubscription = _audioPlayer.onPlayerComplete.listen((event) {
+          if (mounted) {
+            setState(() {
+              _isLoadingAudio = false;
+            });
+          }
+        });
+      } else {
+        throw Exception("Telaffuz bulunamadı");
+      }
     } catch (e) {
-      print("Ses oynatma hatası: $e");
-      
       if (mounted) {
         setState(() {
           _isLoadingAudio = false;
           _audioError = true;
         });
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Telaffuz bulunamadı'),
-            backgroundColor: Colors.red.shade400,
-            duration: Duration(seconds: 2),
-          ),
-        );
+        TranslationService.translate('pronunciation_not_found').then((message) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: Colors.red.shade400,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        });
       }
     }
   }
@@ -438,7 +457,8 @@ class _FlashcardState extends State<Flashcard> with SingleTickerProviderStateMix
   @override
   void dispose() {
     _controller.dispose();
-    _audioPlayer.dispose(); // Bu satırı ekleyin
+    _audioPlayerSubscription?.cancel();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -553,13 +573,18 @@ class _FlashcardState extends State<Flashcard> with SingleTickerProviderStateMix
             Positioned(
               bottom: 8,
               right: 8,
-              child: Text(
-                'Çevirmek için dokunun',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey.shade500,
-                  fontStyle: FontStyle.italic,
-                ),
+              child: FutureBuilder<String>(
+                future: TranslationService.translate('touch_to_flip'),
+                builder: (context, snapshot) {
+                  return Text(
+                    snapshot.data ?? 'Çevirmek için dokunun',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey.shade500,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  );
+                },
               ),
             ),
           ],

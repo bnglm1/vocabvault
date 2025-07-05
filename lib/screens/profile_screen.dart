@@ -40,9 +40,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadUserData() async {
     if (user == null) {
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {  // Added mounted check
+        setState(() {
+          isLoading = false;
+        });
+      }
       return;
     }
 
@@ -50,11 +52,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final userDoc = await FirebaseFirestore.instance.collection('users').doc(user!.uid).get();
       final userData = userDoc.data();
 
+      // Local variables to store data
+      String username = '';
+      bool isPublic = true;
+      String? profileImageUrlTemp;
+      
       if (userData != null) {
         username = userData['username'] ?? '';
         isPublic = userData['isPublic'] ?? true;
-        _profileImageUrl = userData['profileImageUrl'];
-        _usernameController.text = username;
+        profileImageUrlTemp = userData['profileImageUrl'];
       }
 
       final wordListsFuture = FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('wordLists').get();
@@ -63,13 +69,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       final results = await Future.wait([wordListsFuture, quizScoresFuture, learnedWordsFuture]);
 
-      wordListCount = results[0].docs.length;
-      wordCount = results[0].docs.fold(0, (sum, doc) {
+      // Process results locally first
+      int wordListCount = results[0].docs.length;
+      int wordCount = results[0].docs.fold(0, (sum, doc) {
         final words = doc.data()['words'] as List<dynamic>? ?? [];
         return sum + words.length;
       });
 
-      quizScores = results[1].docs.map((doc) {
+      List<Map<String, dynamic>> quizScores = results[1].docs.map((doc) {
         final data = doc.data();
         return {
           'score': data['score'],
@@ -77,7 +84,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         };
       }).toList();
 
-      learnedWords = results[2].docs.map((doc) {
+      List<Map<String, dynamic>> learnedWords = results[2].docs.map((doc) {
         final data = doc.data();
         return {
           'word': data['word'] as String,
@@ -85,14 +92,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
         };
       }).toList();
 
+      // Only update state if the widget is still mounted
+      if (mounted) {
+        setState(() {
+          username = username;
+          isPublic = isPublic;
+          _profileImageUrl = profileImageUrlTemp;
+          _usernameController.text = username;
+          
+          wordListCount = wordListCount;
+          wordCount = wordCount;
+          quizScores = quizScores;
+          learnedWords = learnedWords;
+          isLoading = false;
+        });
+      }
+
       print('Quiz scores: $quizScores');
       print('Learned words: $learnedWords');
     } catch (e) {
       print('Error loading user data: $e');
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {  // Added mounted check
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 

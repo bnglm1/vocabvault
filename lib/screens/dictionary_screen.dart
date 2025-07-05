@@ -5,12 +5,17 @@ import '../services/dictionary_service.dart';
 import '../models/dictionary_entry.dart';
 
 class DictionaryScreen extends StatefulWidget {
+  // Add the initialSearch parameter
+  final String? initialSearch;
+  
+  const DictionaryScreen({super.key, this.initialSearch, required initialQuery});
+  
   @override
-  _DictionaryScreenState createState() => _DictionaryScreenState();
+  State<DictionaryScreen> createState() => _DictionaryScreenState();
 }
 
 class _DictionaryScreenState extends State<DictionaryScreen> {
-  final TextEditingController _searchController = TextEditingController();
+  late TextEditingController _searchController;
   final DictionaryService _dictionaryService = DictionaryService();
   final AudioPlayer _audioPlayer = AudioPlayer();
   
@@ -20,7 +25,7 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
   List<DictionaryEntry> _searchResults = [];
 
   // Çeviri durumu için yeni durum değişkeni ekleyin
-  bool _isTranslating = false;
+  final bool _isTranslating = false;
 
   // Öneriler için değişkenler
   List<String> _suggestions = [];
@@ -31,6 +36,16 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
   @override
   void initState() {
     super.initState();
+    // Initialize controller with the search term if provided
+    _searchController = TextEditingController(text: widget.initialSearch ?? '');
+    
+    // If a search term was provided, perform the search automatically
+    if (widget.initialSearch != null && widget.initialSearch!.isNotEmpty) {
+      // Trigger search functionality with slight delay to ensure UI is built
+      Future.delayed(Duration(milliseconds: 100), () {
+        _performSearch(widget.initialSearch!);
+      });
+    }
     
     // Ekran yüklendikten sonra bilgilendirme göster
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -184,7 +199,7 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                 SizedBox(height: 24),
                 
                 // Kapat butonu
-                Container(
+                SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () => Navigator.of(context).pop(),
@@ -675,7 +690,7 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                 ),
 
               // Anlamlar
-              ...entry.meanings.map((meaning) => _buildMeaning(meaning)).toList(),
+              ...entry.meanings.map((meaning) => _buildMeaning(meaning)),
             ],
           ),
         ),
@@ -810,7 +825,7 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
               ],
             ),
           );
-        }).toList(),
+      }),
 
         // Eş anlamlılar
         if (meaning.synonyms != null && meaning.synonyms!.isNotEmpty)
@@ -976,5 +991,9 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
         ),
       ),
     );
+  }
+
+  void _performSearch(String query) {
+    // Your existing search functionality...
   }
 }

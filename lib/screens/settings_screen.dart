@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:vocabvault2/models/theme_provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:vocabvault2/screens/home_screen.dart';
+import '../services/translation_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -13,7 +15,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _notificationsEnabled = false; // Başlangıçta false olarak değiştirdim
-  String _selectedLanguage = 'Türkçe';
+  final String _selectedLanguage = 'Türkçe';
   late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
   @override
@@ -164,12 +166,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Ayarlar',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+        title: FutureBuilder<String>(
+          future: TranslationService.translate('settings'),
+          builder: (context, snapshot) {
+            return Text(
+              snapshot.data ?? 'Ayarlar',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            );
+          },
         ),
         backgroundColor: Colors.grey.shade800,
         elevation: 4,
@@ -271,20 +278,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             
             SizedBox(height: 24),
-            _buildSettingsCategory('Dil Ayarları', Icons.translate),
+            FutureBuilder<String>(
+              future: TranslationService.translate('language_settings'),
+              builder: (context, snapshot) {
+                return _buildSettingsCategory(
+                  snapshot.data ?? 'Dil Ayarları', 
+                  Icons.language
+                );
+              },
+            ),
             SizedBox(height: 8),
             _buildSettingCard(
               ListTile(
-                title: Text(
-                  'Dil Seçimi',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey.shade800,
-                  ),
+                title: FutureBuilder<String>(
+                  future: TranslationService.translate('language'),
+                  builder: (context, snapshot) {
+                    return Text(
+                      snapshot.data ?? 'Dil',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade800,
+                      ),
+                    );
+                  },
                 ),
                 subtitle: Text(
-                  _selectedLanguage,
+                  TranslationService.getLanguageName(),
                   style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                 ),
                 leading: Container(
@@ -293,12 +313,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: Colors.amber.shade100,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.language, color: Colors.amber.shade700),
+                  child: Icon(Icons.translate, color: Colors.amber.shade700),
                 ),
                 trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
-                onTap: () {
-                  _showLanguageDialog();
-                },
+                onTap: () => _showLanguageDialog(context),
               ),
             ),
             
@@ -339,7 +357,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // Kategori başlığı widgeti
+  // AI
   Widget _buildSettingsCategory(String title, IconData icon) {
     return Padding(
       padding: const EdgeInsets.only(left: 8.0, bottom: 4.0),
@@ -383,99 +401,108 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // Dil seçimi dialog metodu güncellendi
-  void _showLanguageDialog() {
-    showDialog<void>(
+  void _showLanguageDialog(BuildContext context) async {
+    final String turkish = await TranslationService.translate('turkish');
+    final String english = await TranslationService.translate('english');
+    final String currentLang = TranslationService.getCurrentLanguage();
+    
+    showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(
-            'Dil Seçimi',
-            style: TextStyle(
-              color: Colors.grey.shade800,
-              fontWeight: FontWeight.bold,
-            ),
+          title: FutureBuilder<String>(
+            future: TranslationService.translate('language'),
+            builder: (context, snapshot) {
+              return Text(
+                snapshot.data ?? 'Dil',
+                style: TextStyle(
+                  color: Colors.grey.shade800,
+                  fontWeight: FontWeight.bold,
+                ),
+              );
+            },
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildLanguageOption('Türkçe'),
-              _buildLanguageOption('İngilizce'),
+              _buildLanguageOption(
+                context, 
+                'tr', 
+                turkish,
+                currentLang == 'tr'
+              ),
+              SizedBox(height: 8),
+              _buildLanguageOption(
+                context, 
+                'en', 
+                english,
+                currentLang == 'en'
+              ),
             ],
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
-          backgroundColor: Colors.white,
-          actions: [
-            TextButton(
-              child: Text(
-                'İptal',
-                style: TextStyle(color: Colors.grey.shade700),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
         );
       },
     );
   }
 
-  // Dil seçeneği widgeti
-  Widget _buildLanguageOption(String language) {
-    bool isSelected = _selectedLanguage == language;
-    
-    return Card(
-      margin: EdgeInsets.symmetric(vertical: 4),
-      elevation: isSelected ? 2 : 0,
-      color: isSelected ? Colors.amber.shade50 : Colors.grey.shade50,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: BorderSide(
-          color: isSelected ? Colors.amber.shade300 : Colors.grey.shade200,
-          width: 1,
-        ),
-      ),
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            _selectedLanguage = language;
-          });
-          Navigator.of(context).pop();
-        },
-        borderRadius: BorderRadius.circular(10),
-        child: Padding(
-          padding: EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isSelected ? Colors.amber.shade700 : Colors.grey.shade400,
-                    width: 2,
-                  ),
-                  color: isSelected ? Colors.amber.shade700 : Colors.transparent,
-                ),
-                child: isSelected 
-                    ? Icon(Icons.check, color: Colors.white, size: 16)
-                    : null,
-              ),
-              SizedBox(width: 12),
-              Text(
-                language,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey.shade800,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-            ],
+  Widget _buildLanguageOption(BuildContext context, String code, String name, bool isSelected) {
+    return InkWell(
+      onTap: () async {
+        await TranslationService.changeLanguage(code);
+        Navigator.of(context).pop();
+        
+        // Ayarları yenilemek için ekranı yeniden yükleyelim
+        setState(() {});
+        
+        // Önemli: Değişiklik ana uygulamaya yansısın diye anasayfaya yönlendirelim
+        if (code != TranslationService.getCurrentLanguage()) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => HomeScreen()),
+            (route) => false,
+          );
+        }
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.amber.shade50 : Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? Colors.amber.shade600 : Colors.grey.shade300,
+            width: 1.5,
           ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected ? Colors.amber.shade600 : Colors.transparent,
+                border: Border.all(
+                  color: isSelected ? Colors.amber.shade600 : Colors.grey.shade500,
+                  width: 2,
+                ),
+              ),
+              child: isSelected
+                  ? Icon(Icons.check, color: Colors.white, size: 16)
+                  : null,
+            ),
+            SizedBox(width: 12),
+            Text(
+              name,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade800,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ],
         ),
       ),
     );

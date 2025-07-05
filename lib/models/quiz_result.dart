@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vocabvault2/screens/home_screen.dart';
 import '../models/word.dart';
 
 class QuizResultScreen extends StatelessWidget {
@@ -251,12 +252,11 @@ class QuizResultScreen extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Tüm ekranları temizleyip ana sayfaya dönme işlemi
-                    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-                    
-                    // Alternatif olarak aşağıdaki yöntemlerden birini de kullanabilirsiniz:
-                    // Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
-                    // Navigator.pushReplacementNamed(context, '/');
+                    // Ana ekrana dön, tüm diğer ekranları kaldır
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => HomeScreen()),
+                      (route) => false
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.amber.shade700,
